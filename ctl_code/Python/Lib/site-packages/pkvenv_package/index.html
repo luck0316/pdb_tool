@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>代码转换</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
+</head>
+<style>
+       body {
+            background-color: #aaaaff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 105%;
+        }
+
+        .row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-left:10px;
+            padding-bottom: 10px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .choice-container {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 30px;
+            margin-bottom: 55px;
+            margin-right: 13px;
+        }
+
+        .form-check-input[type="radio"]+.form-check-label {
+            margin-right: 5px;
+            color: #0e0202;
+            border-radius: 5px;
+        }
+
+        .form-check-input[type="radio"]:checked+.form-check-label {
+            background-color: #55aaff;
+            border-color: #55aaff;
+        }
+
+        .form-check-input[type="radio"]:hover+.form-check-label {
+            background-color: #55aaff;
+            border-color: #55aaff;
+        }
+
+        .form-check-label {
+            margin-top: 13px;
+            color: #0e0a0a;
+            font-weight: normal;
+            display: block;
+            font-size: 16px;
+
+        }
+
+       .form-group {
+            margin-bottom: 20px;
+            margin-right: 60px;
+
+        }
+
+       #result {
+            background-color: white;
+            margin: 0 auto;
+            text-align: center;
+            border-radius: 6px;
+        }
+
+       .custom-button {
+            background-color: #9c9eff;
+            color: #fff;
+            border-radius: 5px;
+            margin-top: 3px;
+            padding: 5px 10px;
+            border: none;
+
+        }
+       .text-muted {
+          color: #6c757d;
+          font-size: 14px;
+          text-align:center;
+       }
+
+        label{
+            padding-top:3px;
+        }
+
+        .btn{
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+        }
+</style>
+<body>
+    <div class="container mt-5">
+        <h1>Code - Macro</h1>
+        <div class="row">
+            <div class="choice-container">
+                <h4>选 择 功 能：</h4>
+                <hr />
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="choice" id="choice1" value="1">
+                    <label class="form-check-label" for="choice1">
+                        Code To Macro
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="choice" id="choice2" value="2">
+                    <label class="form-check-label" for="choice2">
+                        Macro To Code
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-md-10" style="padding-left: 5px; padding-right: 5px;padding-top:5px">
+                            <label for="ctl_code">控制代码：</label>
+                          <input type="text" id="ctl_code" name="ctl_code" class="form-control" style="width: 100%;">
+                            <label for="device_type">设备类型(hex)：</label>
+                          <input type="text" id="device_type" name="output" class="form-control">
+                            <label for="function_code">功能代码(hex)：</label>
+                          <input type="text" id="function_code" name="output" class="form-control">
+                            <label for="function_code">访问级别：</label>
+                          <input type="text" id="access" name="output" class="form-control">
+                            <label for="function_code">方法：</label>
+                          <input type="text" id="method" name="output" class="form-control">
+                        </div>
+                    </div>
+                </div>
+            </div>
+                <div class="row">
+                    <div class="col-md-10">
+                    <button id="execute" class="btn btn-primary">启动！</button>
+
+                    <button id="reset" class="btn btn-primary">重置！</button>
+                    </div>
+                </div>
+
+            <div class="col-md-10">
+                <div>
+                    <div id="error-message" style="color: red;text-align: center;"></div>
+                    CTL_CODE:<textarea id="define_statement" class="form-control" style="width:100%; overflow:auto; white-space: nowrap;"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+<script>
+    window.addEventListener('message', (event) => {
+        console.log("python",event.data);
+    });
+    let defineStatementChanged = false;
+    window.onload = function() {
+        document.getElementById("define_statement").addEventListener("change", () => {
+            defineStatementChanged = true;
+        });
+     };
+
+    document.getElementById("execute").addEventListener("click", () => {
+        const choice = document.querySelector('input[name="choice"]:checked').value;
+
+        if(choice === "1"){
+            control_code = document.getElementById("ctl_code").value;
+            console.log(control_code);
+            parse_control_code(control_code);
+        }else if (choice === "2"){
+            if(defineStatementChanged){
+                var define_statement = document.getElementById("define_statement").value;
+                parse_define_statement(define_statement);
+                defineStatementChanged = false;
+            }else{
+                var device_type = document.getElementById("device_type").value;
+                var function_code = document.getElementById("function_code").value;
+                var access = document.getElementById("access").value;
+                var method = document.getElementById("method").value;
+                if(device_type && function_code && access && method){
+                    console.log(device_type, function_code, access, method)
+                    micro_to_code(device_type, function_code, access, method);
+                }
+            }
+        }else if (!choice){
+            document.getElementById("define_statement").innerText = "选择功能！";
+        }
+    });
+
+    function parse_define_statement(define_statement_value) {
+        console.log("parse_define_statement", define_statement_value);
+    }
+
+    document.getElementById("reset").addEventListener("click", () => {
+        document.getElementById("ctl_code").value = "";
+        document.getElementById("device_type").value = "";
+        document.getElementById("function_code").value = "";
+        document.getElementById("access").value = "";
+        document.getElementById("method").value = "";
+        document.getElementById("define_statement").value = "";
+        document.getElementById("error-message").innerText = "";
+    });
+
+    document.querySelectorAll('input[name="choice"]').forEach((input) => {
+      input.addEventListener("change", () => {
+        const choice = document.querySelector('input[name="choice"]:checked').value;
+        if (choice === "1") {
+            document.getElementById("ctl_code").value = "";
+            document.getElementById("device_type").value = "";
+            document.getElementById("function_code").value = "";
+            document.getElementById("access").value = "";
+            document.getElementById("method").value = "";
+            document.getElementById("define_statement").value = "";
+            document.getElementById("error-message").innerHTML = "";
+            <!--清空-->
+            document.getElementById("access").removeAttribute("placeholder");
+            document.getElementById("method").removeAttribute("placeholder");
+
+            document.getElementById("device_type").setAttribute("disabled", true);
+            document.getElementById("function_code").setAttribute("disabled", true);
+            document.getElementById("access").setAttribute("disabled", true);
+            document.getElementById("method").setAttribute("disabled", true);
+            document.getElementById("define_statement").setAttribute("disabled", true);
+            document.getElementById("ctl_code").removeAttribute("disabled");
+            <!--禁止-->
+
+        } else if (choice === "2") {
+            document.getElementById("ctl_code").value = "";
+            document.getElementById("device_type").value = "";
+            document.getElementById("function_code").value = "";
+            document.getElementById("access").value = "";
+            document.getElementById("method").value = "";
+            document.getElementById("define_statement").value = "";
+            document.getElementById("error-message").innerHTML = "";
+            document.getElementById("ctl_code").setAttribute("disabled", true);
+            document.getElementById("device_type").removeAttribute("disabled");
+            document.getElementById("function_code").removeAttribute("disabled");
+            document.getElementById("access").removeAttribute("disabled");
+            document.getElementById("method").removeAttribute("disabled");
+            document.getElementById("define_statement").removeAttribute("disabled");
+        }
+      });
+    });
+
+    function parse_control_code(control_code){
+        console.log(control_code)
+        setTimeout(() => {
+             RPC.invoke("parse_control_code", {"control_code": control_code}).then((response) => {
+                console.log(response);
+                if (typeof response === "string") {
+                    var errorMessage = response;
+                    document.getElementById("error-message").innerHTML = errorMessage;
+                }else{
+                    document.getElementById("define_statement").innerText = "";
+                    document.getElementById("error-message").innerHTML = "";
+                    document.getElementById("device_type").value = response[1]+":"+response[0];
+                    document.getElementById("function_code").value = response[2];
+                    document.getElementById("access").value  = response[3];
+                    document.getElementById("method").value  = response[4];
+                    document.getElementById("define_statement").value = response[5];
+                }
+             });
+        }, 1000);
+    }
+
+    function micro_to_code(device_type, function_code, access, method){
+        console.log(device_type, function_code, access, method)
+        setTimeout(() => {
+             RPC.invoke("micro_to_code", {"device_type_hex": device_type,"function_code_hex": function_code,"access": access,"method": method})
+                .then((response) => {
+                    console.log(response);
+                     if (typeof response === "string") {
+                        var errorMessage = response;
+                        document.getElementById("error-message").innerHTML = errorMessage;
+                    }else{
+                        document.getElementById("error-message").innerHTML = "";
+                        document.getElementById("define_statement").innerText = "";
+                        document.getElementById("ctl_code").value = response[0];
+                        document.getElementById("define_statement").value = response[1];
+                    }
+                });
+        }, 1000);
+    }
+
+    function parse_define_statement(define_statement) {
+    setTimeout(() => {
+        RPC.invoke("parse_define_statement", {"define_statement": define_statement})
+            .then((response) => {
+                if (typeof response === "string") {
+                    var errorMessage = response;
+                    document.getElementById("error-message").innerHTML = errorMessage;
+                }else{
+                    document.getElementById("error-message").innerHTML = "";
+                    document.getElementById("define_statement").innerText = "";
+                    document.getElementById("ctl_code").value = response[0];
+                    document.getElementById("device_type").value = response[1];
+                    document.getElementById("function_code").value = response[2];
+                    document.getElementById("access").value  = response[3];
+                    document.getElementById("method").value  = response[4];
+                }
+            });
+        }, 1000);
+    }
+
+</script>
+</body>
+
+
+</html>
