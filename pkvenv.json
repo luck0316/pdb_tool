@@ -1,0 +1,10 @@
+{
+    "name": "pdb_tool",
+    "entry_point": "app:main",
+    "venv": "./venv",
+    "gui": true,
+    "include" : [
+        "app.py",
+        "index.html"
+    ]
+}
