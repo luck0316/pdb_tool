@@ -1,7 +1,7 @@
 # pdb_tool
 
 ## 简介
-- 用于提取PDB（Program Database）文件信息的工具。\
+- 用于提取PDB（Program Database）文件信息的工具。
 
   *PDB文件通常包含程序的调试信息，对于软件开发和调试过程非常重要。*
 
